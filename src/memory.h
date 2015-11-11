@@ -3,7 +3,7 @@
 
 #include <inttypes.h>
 
-void initMemory(void *rom);
+void initMemory(void *rom, int fileSize);
 
 void cleanMemory();
 

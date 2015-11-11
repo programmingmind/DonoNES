@@ -4,7 +4,7 @@
 #include "cpu.h"
 #include "memory.h"
 
-void *loadFile(const char *fileName);
+void loadFile(const char *fileName, void **contents, int *fileSize);
 
 int main(int argc, char *argv[]) {
    if (argc < 2) {
@@ -12,9 +12,12 @@ int main(int argc, char *argv[]) {
       return 1;
    }
 
-   void *rom = loadFile(argv[1]);
+   void *rom = NULL;
+   int fileSize = 0;
 
-   initMemory(rom);
+   loadFile(argv[1], &rom, &fileSize);
+
+   initMemory(rom, fileSize);
    initCPU();
 
    free(rom);
@@ -29,17 +32,16 @@ int main(int argc, char *argv[]) {
    return 0;
 }
 
-void *loadFile(const char *fileName) {
+void loadFile(const char *fileName, void **contents, int *fileSize) {
    FILE *fp = NULL;
-   void *contents = NULL;
 
    if ((fp = fopen(fileName, "rb"))) {
       fseek(fp, 0, SEEK_END);
-      long fileSize = ftell(fp);
+      *fileSize = ftell(fp);
       fseek(fp, 0, SEEK_SET);
 
-      if ((contents = malloc(fileSize))) {
-         if (fread(contents, 1, fileSize, fp) != fileSize) {
+      if ((*contents = malloc(*fileSize))) {
+         if (fread(*contents, 1, *fileSize, fp) != *fileSize) {
             fprintf(stderr, "File read error\n");
             exit(1);
          }
@@ -52,7 +54,5 @@ void *loadFile(const char *fileName) {
       fprintf(stderr, "Could not load file %s\n", fileName);
       exit(1);
    }
-
-   return contents;
 }
 
