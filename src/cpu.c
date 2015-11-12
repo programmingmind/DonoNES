@@ -38,6 +38,7 @@ typedef struct {
 static registers_t registers;
 
 int ADC(uint8_t val, uint16_t addr);
+int SBC(uint8_t val, uint16_t addr);
 
 int ASL(uint8_t val, uint16_t addr);
 int LSR(uint8_t val, uint16_t addr);
@@ -119,7 +120,7 @@ static instruction_t InstructionTable[] = {
    //       Impl, Rel
    //        Acc, Imm,  ZP,   ZPX,  Abs,  AbsX, AbsY, IndX, IndY
    {"ADC", {0xFF, 0x69, 0x65, 0x75, 0x6D, 0x7D, 0x79, 0x61, 0x71}, {0, 2, 3, 4, 4, 4, 4, 6, 5}, {0, 0, 0, 0, 0, 1, 1, 0, 1}, ADC},
-   {"SBC", {0xFF, 0xE9, 0xE5, 0xF5, 0xED, 0xFD, 0xF9, 0xE1, 0xF1}, {0, 2, 3, 4, 4, 4, 4, 6, 5}, {0, 0, 0, 0, 0, 1, 1, 0, 1}, ADC},
+   {"SBC", {0xFF, 0xE9, 0xE5, 0xF5, 0xED, 0xFD, 0xF9, 0xE1, 0xF1}, {0, 2, 3, 4, 4, 4, 4, 6, 5}, {0, 0, 0, 0, 0, 1, 1, 0, 1}, SBC},
 
    {"ASL", {0x0A, 0xFF, 0x06, 0x16, 0x0E, 0x1E, 0xFF, 0xFF, 0xFF}, {2, 0, 5, 6, 6, 7, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, ASL},
    {"LSR", {0x4A, 0xFF, 0x46, 0x56, 0x4E, 0x5E, 0xFF, 0xFF, 0xFF}, {2, 0, 5, 6, 6, 7, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, LSR},
@@ -202,6 +203,8 @@ static instruction_t InstructionTable[] = {
 uint8_t fetchPC();
 uint16_t fetchPC16();
 
+uint8_t registerFlags();
+
 uint8_t Imm (uint8_t *pageBoundary, uint16_t *address);
 uint8_t ZP  (uint8_t *pageBoundary, uint16_t *address);
 uint8_t ZPX (uint8_t *pageBoundary, uint16_t *address);
@@ -218,8 +221,8 @@ void initCPU() {
    registers.A  = 0;
    registers.X  = 0;
    registers.Y  = 0;
-   registers.P  = {0,0,0,0,0,0,0,0};
-   registers.SP = 0xFF;
+   registers.P  = {0,0,1,0,0,1,0,0};
+   registers.SP = 0xFD;
    registers.PC = 0xC000;
 }
 
@@ -230,7 +233,8 @@ void cleanCPU() {
 int step() {
    uint16_t pc = registers.PC;
    uint8_t opcode = fetchPC();
-   printf("%d: 0x%02x\n", pc, opcode);
+   printf("0x%04X: 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X\n", pc, opcode, registers.A, registers.X, registers.Y, registerFlags(), registers.SP);
+   fflush(stdout);
 
    if (opcode != 0xFF) {
       int instNdx = 0;
@@ -402,9 +406,9 @@ uint8_t IndY(uint8_t *pageBoundary, uint16_t *address) {
 int ADC(uint8_t val, uint16_t addr) {
    uint16_t res = registers.A + val + registers.P.carry;
    
-   registers.P.overflow = MSB(registers.A) != MSB(res) ? 1 : 0;
+   registers.P.overflow = (MSB(registers.A) != MSB(res) && MSB(val) != MSB(res)) ? 1 : 0;
    registers.P.negative = MSB(res)  ? 1 : 0;
-   registers.P.zero     = res == 0  ? 1 : 0;
+   registers.P.zero     = (res & 0xFF) == 0  ? 1 : 0;
    registers.P.carry    = res > 255 ? 1 : 0;
 
    registers.A = res & 0xFF;
@@ -412,12 +416,15 @@ int ADC(uint8_t val, uint16_t addr) {
 }
 
 int SBC(uint8_t val, uint16_t addr) {
-   int16_t res = registers.A + ~val + registers.P.carry;
+   int16_t re = registers.A - val + (registers.P.carry ? 0x100 : 0);
+   uint16_t res = registers.A - val - (registers.P.carry ? 0 : 1);
 
-   registers.P.overflow = MSB(registers.A) != MSB(res) ? 1 : 0;
+   fprintf(stderr, "%d, %d\n", res, int8_t(re));
+
+   registers.P.overflow = ((res & 0x100) == 0 && int16_t(res) < -128) ? 1 : 0;
    registers.P.negative = MSB(res)  ? 1 : 0;
-   registers.P.zero     = res == 0  ? 1 : 0;
-   registers.P.carry    = (res > 127 || res < -128) ? 1 : 0;
+   registers.P.zero     = (res & 0xFF) == 0  ? 1 : 0;
+   registers.P.carry    = (re & 0x100) ? 1 : 0;
 
    registers.A = res & 0xFF;
    return 0;
@@ -536,6 +543,7 @@ int CLC(uint8_t val, uint16_t addr) {
 }
 
 int CLD(uint8_t val, uint16_t addr) {
+   registers.P.decimalMode = 0;
    return 0;
 }
 
@@ -555,6 +563,7 @@ int SEC(uint8_t val, uint16_t addr) {
 }
 
 int SED(uint8_t val, uint16_t addr) {
+   registers.P.decimalMode = 1;
    return 0;
 }
 
@@ -564,7 +573,8 @@ int SEI(uint8_t val, uint16_t addr) {
 }
 
 int Compare(uint8_t val, uint8_t mem) {
-   registers.P.negative = val <= mem ? 1 : 0;
+   fprintf(stderr, "%d, %d\n", (val), (mem));
+   registers.P.negative = MSB(val - mem) ? 1 : 0;
    registers.P.carry    = val >= mem ? 1 : 0;
    registers.P.zero     = val == mem ? 1 : 0;
    return 0;
@@ -643,10 +653,11 @@ int BRK(uint8_t val, uint16_t addr) {
 }
 
 int JSR(uint8_t val, uint16_t addr) {
+   uint16_t nextPC = fetchPC16();
    registers.PC--;
    push((registers.PC >> 8) & 0xFF);
    push((registers.PC     ) & 0xFF);
-   registers.PC = fetchPC16();
+   registers.PC = nextPC;
    return 0;
 }
 
@@ -713,7 +724,7 @@ int PHA(uint8_t val, uint16_t addr) {
 }
 
 int PHP(uint8_t val, uint16_t addr) {
-   push(registerFlags());
+   push(registerFlags() | 0x10);
    return 0;
 }
 
@@ -725,7 +736,7 @@ int PLA(uint8_t val, uint16_t addr) {
 }
 
 int PLP(uint8_t val, uint16_t addr) {
-   registers.P = flagsToRegister(pop());
+   registers.P = flagsToRegister((pop() & 0xEF) | 0x20);
    return 0;
 }
 
@@ -771,9 +782,9 @@ int TXS(uint8_t val, uint16_t addr) {
 
 int BIT(uint8_t val, uint16_t addr) {
    uint8_t t = registers.A & val;
-   registers.P.negative = MSB(t)  ? 1 : 0;
-   registers.P.overflow = MSB2(t) ? 1 : 0;
-   registers.P.zero     = t == 0  ? 1 : 0;
+   registers.P.negative = MSB(val)  ? 1 : 0;
+   registers.P.overflow = MSB2(val) ? 1 : 0;
+   registers.P.zero     = t == 0    ? 1 : 0;
    return 0;
 }
 
