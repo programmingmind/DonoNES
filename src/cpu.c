@@ -115,6 +115,40 @@ int BIT(uint8_t val, uint16_t addr);
 
 int NOP(uint8_t val, uint16_t addr);
 
+// undocumented
+
+int AAC(uint8_t val, uint16_t addr);
+
+int XAA(uint8_t val, uint16_t addr);
+
+int AAX(uint8_t val, uint16_t addr);
+int AAX_ZPY(uint8_t val, uint16_t addr);
+int LAX(uint8_t val, uint16_t addr);
+int LAX_ZPY(uint8_t val, uint16_t addr);
+
+int ARR(uint8_t val, uint16_t addr);
+int ASR(uint8_t val, uint16_t addr);
+int ATX(uint8_t val, uint16_t addr);
+int AXS(uint8_t val, uint16_t addr);
+
+int AXA(uint8_t val, uint16_t addr);
+int SXA(uint8_t val, uint16_t addr);
+int SYA(uint8_t val, uint16_t addr);
+
+int DCP(uint8_t val, uint16_t addr);
+int ISC(uint8_t val, uint16_t addr);
+int RLA(uint8_t val, uint16_t addr);
+int RRA(uint8_t val, uint16_t addr);
+int SLO(uint8_t val, uint16_t addr);
+int SRE(uint8_t val, uint16_t addr);
+
+int LAR(uint8_t val, uint16_t addr);
+int XAS(uint8_t val, uint16_t addr);
+
+int DOP(uint8_t val, uint16_t addr);
+int TOP(uint8_t val, uint16_t addr);
+int KIL(uint8_t val, uint16_t addr);
+
 static instruction_t InstructionTable[] = {
    //       Other
    //       Impl, Rel
@@ -197,6 +231,76 @@ static instruction_t InstructionTable[] = {
    
    {"NOP", {0xEA, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {2, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, NOP},
 
+   // Undocumented
+   //       Other
+   //       Impl, Rel
+   //        Acc, Imm,  ZP,   ZPX,  Abs,  AbsX, AbsY, IndX, IndY
+
+   {"SBC", {0xFF, 0xEB, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 2, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, SBC},
+
+   {"AAC", {0xFF, 0x0B, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 2, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, AAC},
+   {"AAC", {0xFF, 0x2B, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 2, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, AAC},
+
+   {"XAA", {0xFF, 0x8B, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 2, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, XAA},
+
+   {"AAX", {0xFF, 0xFF, 0x87, 0xFF, 0x8F, 0xFF, 0xFF, 0x83, 0xFF}, {0, 0, 3, 0, 4, 0, 0, 6, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, AAX},
+   {"AAX", {0x97, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {4, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, AAX_ZPY},
+   {"LAX", {0xFF, 0xFF, 0xA7, 0xFF, 0xAF, 0xFF, 0xBF, 0xA3, 0xB3}, {0, 0, 3, 0, 4, 0, 4, 6, 5}, {0, 0, 0, 0, 0, 0, 1, 0, 1}, LAX},
+   {"LAX", {0xB7, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {4, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, LAX_ZPY},
+
+   {"ARR", {0xFF, 0x6B, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 2, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, ARR},
+   {"ASR", {0xFF, 0x4B, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 2, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, ASR},
+   {"ATX", {0xFF, 0xAB, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 2, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, ATX},
+   {"AXS", {0xFF, 0xCB, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 2, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, AXS},
+
+   {"AXA", {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x9F, 0xFF, 0x93}, {0, 0, 0, 0, 0, 0, 5, 0, 6}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, AXA},
+   {"SXA", {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x9E, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 0, 5, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, SXA},
+   {"SYA", {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x9C, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 5, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, SYA},
+
+   {"DCP", {0xFF, 0xFF, 0xC7, 0xD7, 0xCF, 0xDF, 0xDB, 0xC3, 0xD3}, {0, 0, 5, 6, 6, 7, 7, 8, 8}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, DCP},
+   {"ISC", {0xFF, 0xFF, 0xE7, 0xF7, 0xEF, 0xFF, 0xFB, 0xE3, 0xF3}, {0, 0, 5, 6, 6, 7, 7, 8, 8}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, ISC}, // SPECIAL
+   {"RLA", {0xFF, 0xFF, 0x27, 0x37, 0x2F, 0x3F, 0x3B, 0x23, 0x33}, {0, 0, 5, 6, 6, 7, 7, 8, 8}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, RLA},
+   {"RRA", {0xFF, 0xFF, 0x67, 0x77, 0x6F, 0x7F, 0x7B, 0x63, 0x73}, {0, 0, 5, 6, 6, 7, 7, 8, 8}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, RRA},
+   {"SLO", {0xFF, 0xFF, 0x07, 0x17, 0x0F, 0x1F, 0x1B, 0x03, 0x13}, {0, 0, 5, 6, 6, 7, 7, 8, 8}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, SLO},
+   {"SRE", {0xFF, 0xFF, 0x47, 0x57, 0x4F, 0x5F, 0x5B, 0x43, 0x53}, {0, 0, 5, 6, 6, 7, 7, 8, 8}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, SRE},
+
+   {"LAR", {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xBB, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 0, 4, 0, 0}, {0, 0, 0, 0, 0, 0, 1, 0, 0}, LAR},
+   {"XAS", {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x9B, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 0, 5, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, XAS},
+
+   {"NOP", {0x1A, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {2, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, NOP},
+   {"NOP", {0x3A, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {2, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, NOP},
+   {"NOP", {0x5A, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {2, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, NOP},
+   {"NOP", {0x7A, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {2, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, NOP},
+   {"NOP", {0xDA, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {2, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, NOP},
+   {"NOP", {0xFA, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {2, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, NOP},
+
+   {"DOP", {0xFF, 0x80, 0x04, 0x14, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 2, 3, 4, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, DOP},
+   {"DOP", {0xFF, 0x82, 0x44, 0x34, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 2, 3, 4, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, DOP},
+   {"DOP", {0xFF, 0x89, 0x64, 0x54, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 2, 3, 4, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, DOP},
+   {"DOP", {0xFF, 0xC2, 0xFF, 0x74, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 2, 0, 4, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, DOP},
+   {"DOP", {0xFF, 0xE2, 0xFF, 0xD4, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 2, 0, 4, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, DOP},
+   {"DOP", {0xFF, 0xFF, 0xFF, 0xF4, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 4, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, DOP},
+
+   {"TOP", {0xFF, 0xFF, 0xFF, 0xFF, 0x0C, 0x1C, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 4, 4, 0, 0, 0}, {0, 0, 0, 0, 0, 1, 0, 0, 0}, TOP},
+   {"TOP", {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x3C, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 4, 0, 0, 0}, {0, 0, 0, 0, 0, 1, 0, 0, 0}, TOP},
+   {"TOP", {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x5C, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 4, 0, 0, 0}, {0, 0, 0, 0, 0, 1, 0, 0, 0}, TOP},
+   {"TOP", {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7C, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 4, 0, 0, 0}, {0, 0, 0, 0, 0, 1, 0, 0, 0}, TOP},
+   {"TOP", {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xDC, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 4, 0, 0, 0}, {0, 0, 0, 0, 0, 1, 0, 0, 0}, TOP},
+   {"TOP", {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFC, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 4, 0, 0, 0}, {0, 0, 0, 0, 0, 1, 0, 0, 0}, TOP},
+
+   {"KIL", {0x02, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, KIL},
+   {"KIL", {0x12, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, KIL},
+   {"KIL", {0x22, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, KIL},
+   {"KIL", {0x32, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, KIL},
+   {"KIL", {0x42, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, KIL},
+   {"KIL", {0x52, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, KIL},
+   {"KIL", {0x62, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, KIL},
+   {"KIL", {0x72, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, KIL},
+   {"KIL", {0x92, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, KIL},
+   {"KIL", {0xB2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, KIL},
+   {"KIL", {0xD2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, KIL},
+   {"KIL", {0xF2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, KIL},
+
    {"???", {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0}, NULL}
 };
 
@@ -248,9 +352,17 @@ int step() {
 
          ++instNdx;
       }
+   } else {
+      int instNdx = 0;
+
+      while (InstructionTable[instNdx].execute != ISC) {
+         instNdx++;
+      }
+
+      return runInstruction(InstructionTable + instNdx, 5);
    }
 
-   fprintf(stderr, "Invalid opcode 0x%02x\n", opcode);
+   fprintf(stderr, "Invalid opcode 0x%02X\n", opcode);
    return 1;
 }
 
@@ -818,4 +930,102 @@ int BIT(uint8_t val, uint16_t addr) {
 
 int NOP(uint8_t val, uint16_t addr) {
    return 0;
+}
+
+// undocumented
+
+int AAC(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int XAA(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int AAX(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int AAX_ZPY(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int LAX(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int LAX_ZPY(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int ARR(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int ASR(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int ATX(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int AXS(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int AXA(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int SXA(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int SYA(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int DCP(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int ISC(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int RLA(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int RRA(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int SLO(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int SRE(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int LAR(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int XAS(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int DOP(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int TOP(uint8_t val, uint16_t addr) {
+   return 0;
+}
+
+int KIL(uint8_t val, uint16_t addr) {
+   exit(0);
 }
