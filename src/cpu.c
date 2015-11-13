@@ -261,7 +261,8 @@ int runInstruction(instruction_t *inst, int ndx) {
 
    switch (ndx) {
       case 0:
-         val = pageBoundary = 0;
+         val = registers.A;
+         pageBoundary = 0;
          break;
       case 1:
          val = Imm(&pageBoundary, &address);
@@ -393,13 +394,13 @@ uint8_t AbsY(uint8_t *pageBoundary, uint16_t *address) {
 
 uint8_t IndX(uint8_t *pageBoundary, uint16_t *address) {
    *pageBoundary = 0;
-   *address = fetch16((fetchPC() + registers.X) & 0xFF);
+   *address = fetchZP16((fetchPC() + registers.X) & 0xFF);
    return fetch(*address);
 }
 
 uint8_t IndY(uint8_t *pageBoundary, uint16_t *address) {
    *pageBoundary = 0;
-   *address = fetch16(fetchPC()) + registers.Y;
+   *address = fetchZP16(fetchPC()) + registers.Y;
    return fetch(*address);
 }
 
@@ -416,49 +417,69 @@ int ADC(uint8_t val, uint16_t addr) {
 }
 
 int SBC(uint8_t val, uint16_t addr) {
-   int16_t re = registers.A - val + (registers.P.carry ? 0x100 : 0);
-   uint16_t res = registers.A - val - (registers.P.carry ? 0 : 1);
+   return ADC(~val, addr);
+   // int16_t re = registers.A - val + (registers.P.carry ? 0x100 : 0);
+   // uint16_t res = registers.A - val - (registers.P.carry ? 0 : 1);
 
-   fprintf(stderr, "%d, %d\n", res, int8_t(re));
+   // fprintf(stderr, "%d, %d\n", res, int8_t(re));
 
-   registers.P.overflow = ((res & 0x100) == 0 && int16_t(res) < -128) ? 1 : 0;
-   registers.P.negative = MSB(res)  ? 1 : 0;
-   registers.P.zero     = (res & 0xFF) == 0  ? 1 : 0;
-   registers.P.carry    = (re & 0x100) ? 1 : 0;
+   // registers.P.overflow = ((res & 0x100) == 0 && int16_t(res) < -128) ? 1 : 0;
+   // registers.P.negative = MSB(res)  ? 1 : 0;
+   // registers.P.zero     = (res & 0xFF) == 0  ? 1 : 0;
+   // registers.P.carry    = (int8_t(res) >= 0) ? 1 : 0;
 
-   registers.A = res & 0xFF;
-   return 0;
+   // registers.A = res & 0xFF;
+   // return 0;
 }
 
 int ASL(uint8_t val, uint16_t addr) {
    registers.P.carry = MSB(val) ? 1 : 0;
 
-   registers.A = (val << 1) & 0xFE;
+   val = (val << 1) & 0xFE;
 
-   registers.P.negative = MSB(registers.A) ? 1 : 0;
-   registers.P.zero     = registers.A == 0 ? 1 : 0;
+   registers.P.negative = MSB(val) ? 1 : 0;
+   registers.P.zero     = val == 0 ? 1 : 0;
+
+   if (addr) {
+      store(addr, val);
+   } else {
+      registers.A = val;
+   }
 
    return 0;
 }
 
 int LSR(uint8_t val, uint16_t addr) {
+   fprintf(stderr, "LSR %04X %02X\n", addr, val);
    registers.P.negative = 0;
    registers.P.carry = (val & 1) ? 1 : 0;
 
-   registers.A = (val >> 1) & 0x7F;
+   val = (val >> 1) & 0x7F;
+   registers.P.zero = val == 0 ? 1 : 0;
 
-   registers.P.zero = registers.A == 0 ? 1 : 0;
+   if (addr) {
+      store(addr, val);
+   } else {
+      registers.A = val;
+   }
+
    return 0;
 }
 
 int ROL(uint8_t val, uint16_t addr) {
    uint8_t t = MSB(val) ? 1 : 0;
 
-   registers.A = ((val << 1) & 0xFE) | (registers.P.carry ? 1 : 0);
+   val = ((val << 1) & 0xFE) | (registers.P.carry ? 1 : 0);
 
-   registers.P.carry    = t                ? 1 : 0;
-   registers.P.negative = MSB(registers.A) ? 1 : 0;
-   registers.P.zero     = registers.A == 0 ? 1 : 0;
+   registers.P.carry    = t;
+   registers.P.negative = MSB(val) ? 1 : 0;
+   registers.P.zero     = val == 0 ? 1 : 0;
+
+   if (addr) {
+      store(addr, val);
+   } else {
+      registers.A = val;
+   }
 
    return 0;
 }
@@ -466,11 +487,17 @@ int ROL(uint8_t val, uint16_t addr) {
 int ROR(uint8_t val, uint16_t addr) {
    uint8_t t = (val & 1) ? 1 : 0;
 
-   registers.A = ((val >> 1) & 0x7F) | (registers.P.carry ? 0x80 : 0x00);
+   val = ((val >> 1) & 0x7F) | (registers.P.carry ? 0x80 : 0x00);
 
-   registers.P.carry    = t                ? 1 : 0;
-   registers.P.negative = MSB(registers.A) ? 1 : 0;
-   registers.P.zero     = registers.A == 0 ? 1 : 0;
+   registers.P.carry    = t;
+   registers.P.negative = MSB(val) ? 1 : 0;
+   registers.P.zero     = val == 0 ? 1 : 0;
+
+   if (addr) {
+      store(addr, val);
+   } else {
+      registers.A = val;
+   }
 
    return 0;
 }
@@ -640,7 +667,8 @@ int JMP_ABS(uint8_t val, uint16_t addr) {
 }
 
 int JMP_IND(uint8_t val, uint16_t addr) {
-   registers.PC = fetch16(fetchPC16());
+   uint16_t first = fetchPC16();
+   registers.PC = fetch(first) | (fetch((first & 0xFF00) | ((first+1) & 0xFF)) << 8);
    return 0;
 }
 
@@ -662,7 +690,7 @@ int JSR(uint8_t val, uint16_t addr) {
 }
 
 int RTI(uint8_t val, uint16_t addr) {
-   registers.P  = flagsToRegister(pop());
+   registers.P  = flagsToRegister(pop() | 0x20);
    registers.PC = pop() | (pop() << 8);
    return 0;
 }

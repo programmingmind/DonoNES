@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 
 #include "memory.h"
@@ -35,11 +36,18 @@ uint8_t fetch(uint16_t addr) {
    }
 }
 
+uint16_t fetchZP16(uint16_t addr) {
+   fprintf(stderr, "Fetching 0x%04X\n", addr);
+   return fetch(addr & 0x00FF) | (fetch((addr+1) & 0x00FF) << 8);
+}
+
 uint16_t fetch16(uint16_t addr) {
-   return fetch(addr) | (fetch(addr+1) << 8);
+   fprintf(stderr, "Fetching 0x%04X\n", addr);
+   return fetch(addr) | (fetch((addr+1)) << 8);
 }
 
 void store(uint16_t addr, uint8_t value) {
+   fprintf(stderr, "Storing 0x%02X into 0x%04X\n", value, addr);
    if (addr < 0x2000) {
       memory[addr & 0x7FF] = value;
    } else if (addr < 0x4000) {
