@@ -23,6 +23,7 @@ void initMemory(void *rom, int fileSize) {
 }
 
 uint8_t fetch(uint16_t addr) {
+   fprintf(stderr, "Fetching 0x%04X\n", addr);
    if (addr < 0x2000) {
       return memory[addr & 0x7FF];
    } else if (addr < 0x4000) {

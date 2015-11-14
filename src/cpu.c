@@ -943,19 +943,29 @@ int XAA(uint8_t val, uint16_t addr) {
 }
 
 int AAX(uint8_t val, uint16_t addr) {
+   val = registers.A & registers.X;
+   // registers.P.negative = MSB(val) ? 1 : 0;
+   // registers.P.zero     = val == 0 ? 1 : 0;
+   store(addr, val);
    return 0;
 }
 
 int AAX_ZPY(uint8_t val, uint16_t addr) {
-   return 0;
+   uint8_t pageBoundary = 0;
+   return AAX(ZPY(&pageBoundary, &addr), addr);
 }
 
 int LAX(uint8_t val, uint16_t addr) {
+   registers.A = val;
+   registers.X = val;
+   registers.P.negative = MSB(registers.X) ? 1 : 0;
+   registers.P.zero     = registers.X == 0 ? 1 : 0;
    return 0;
 }
 
 int LAX_ZPY(uint8_t val, uint16_t addr) {
-   return 0;
+   uint8_t pageBoundary = 0;
+   return LAX(ZPY(&pageBoundary, &addr), addr);
 }
 
 int ARR(uint8_t val, uint16_t addr) {
@@ -987,26 +997,45 @@ int SYA(uint8_t val, uint16_t addr) {
 }
 
 int DCP(uint8_t val, uint16_t addr) {
+   DEC(val, addr);
+   CMP(fetch(addr), addr);
    return 0;
 }
 
 int ISC(uint8_t val, uint16_t addr) {
+   INC(val, addr);
+   SBC(fetch(addr), addr);
    return 0;
 }
 
 int RLA(uint8_t val, uint16_t addr) {
+   ROL(val, addr);
+   AND(fetch(addr), addr);
    return 0;
 }
 
 int RRA(uint8_t val, uint16_t addr) {
+   ROR(val, addr);
+   ADC(fetch(addr), addr);
    return 0;
 }
 
 int SLO(uint8_t val, uint16_t addr) {
+   ASL(val, addr);
+   ORA(fetch(addr), addr);
    return 0;
 }
 
 int SRE(uint8_t val, uint16_t addr) {
+   registers.P.carry = val & 0x01 ? 1 : 0;
+
+   val = (val >> 1) & 0x7F;
+
+   registers.P.negative = MSB(val) ? 1 : 0;
+   registers.P.zero     = val == 0 ? 1 : 0;
+
+   store(addr, val);
+   EOR(fetch(addr), addr);
    return 0;
 }
 
